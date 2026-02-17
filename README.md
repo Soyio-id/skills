@@ -9,8 +9,10 @@ Small skill library for Soyio teams.
 
 ## Current skills
 
-- `commit-work`
-- `prepare-security-prs` - Prepare Security PRs
+- `commit-work` - Create clean, logically scoped commits with strong messages.
+- `create-pr` - Open a review-ready PR with `gh`, template alignment, and checks.
+- `prepare-security-prs` - Triage dependency security PRs and apply minimal safe fixes.
+- `using-git-worktrees` - Set up isolated worktrees with directory and safety verification.
 
 ## Install skills
 
