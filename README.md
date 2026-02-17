@@ -12,8 +12,32 @@ Small skill library for Soyio teams.
 - `commit-work`
 - `prepare-security-prs` - Prepare Security PRs
 
+## Install skills
+
+- Install one skill:
+
+```bash
+npx skills add soyio-id/skills@commit-work
+```
+
+- Install another skill:
+
+```bash
+npx skills add soyio-id/skills@prepare-security-prs
+```
+
+- Install globally without prompts:
+
+```bash
+npx skills add soyio-id/skills@commit-work -g -y
+```
+
 ## Add a new skill
 
 1. Create `skills/<skill-name>/`.
 2. Add `skills/<skill-name>/SKILL.md`.
 3. Keep each skill focused on one workflow.
+
+## Contributing
+
+- See `CONTRIBUTING.md` for naming, structure, and PR guidelines.
