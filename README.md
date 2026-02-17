@@ -14,6 +14,12 @@ Small skill library for Soyio teams.
 
 ## Install skills
 
+- Install all skills from this repo:
+
+```bash
+npx skills add soyio-id/skills --all
+```
+
 - Install one skill:
 
 ```bash
