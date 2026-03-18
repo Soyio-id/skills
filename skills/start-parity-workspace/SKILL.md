@@ -64,11 +64,13 @@ bin/worktree-add <workspace-id>
 - If `bin/worktree-add` is missing, fall back to:
 
 ```bash
+git check-ignore -q .worktrees/
 mkdir -p .worktrees
-git worktree add ".worktrees/<workspace-id>" -b "<workspace-id>" HEAD
+git fetch origin "$(git remote show origin | awk '/HEAD branch/ {print $NF}')"
+git worktree add ".worktrees/<workspace-id>" -b "<workspace-id>" "origin/$(git remote show origin | awk '/HEAD branch/ {print $NF}')"
 ```
 
-Use the repo's default branch as the base for missing peer worktrees unless the user explicitly asks for something else.
+If `.worktrees/` is not ignored, stop and ask the user to add it to `.gitignore` first. Use the repo's default branch as the base for missing peer worktrees unless the user explicitly asks for something else.
 
 ## Startup order
 
@@ -126,7 +128,7 @@ Add `--purge-data` only when the user explicitly wants the linked-worktree Docke
 - Never mix different workspace ids across the three repos.
 - Never assume fixed localhost ports; prefer `bin/worktree-env` output.
 - Reuse an existing matching worktree instead of creating duplicates.
-- Warn clearly if you only changed `soyio` and dashboard/privacy parity still needs verification.
+- Warn clearly if the task only changed `soyio`, or if dashboard/privacy worktrees were intentionally skipped or could not be started, because parity still needs verification in those cases.
 
 ## When not to use this skill
 

@@ -74,12 +74,16 @@ bin/worktree-add <branch-name>
 
 ```bash
 mkdir -p .worktrees
-git worktree add ".worktrees/<slug>" -b "<branch-name>" HEAD
+slug=$(printf '%s' "<branch-name>" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')
+slug=${slug#-}
+slug=${slug%-}
+git worktree add ".worktrees/${slug}" -b "<branch-name>" HEAD
 ```
 
 ### Existing branch
 
 - If the branch exists locally, use it.
+- If the branch is already checked out in another worktree, use `git worktree add --force` so the isolated review/setup still succeeds.
 - If it exists only on `origin`, fetch it first:
 
 ```bash
@@ -126,7 +130,7 @@ Only use this mode when repo-local helpers are absent.
 2. If `.worktrees/` does not exist, verify it is ignored before creating it:
 
 ```bash
-git check-ignore -q .worktrees
+git check-ignore -q .worktrees/
 ```
 
 3. If `.worktrees/` is not ignored, add it to `.gitignore` and stop to let the user review that repo change separately.
