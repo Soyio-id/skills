@@ -12,7 +12,7 @@ Clean up the current branch's commit history by incorporating uncommitted change
 
 - Run `git status` to check for uncommitted changes (staged + unstaged + untracked).
 - If there are NO uncommitted changes, stop and inform the user.
-- Run `git log --oneline <base-branch>..HEAD` to see the branch's commits (detect base branch from tracking info or default to `master`).
+- Run `git log --oneline <base-branch>..HEAD` to see the branch's commits (detect base branch from tracking info or the repository's default branch, e.g. `main` or `master`).
 - If there is only one commit on the branch, there is nothing to fixup into — just amend that commit with the pending changes and force-push.
 
 ### 2. Analyze and assign
