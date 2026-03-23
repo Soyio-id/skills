@@ -53,7 +53,7 @@ The workspace root is the parent directory of this skill's location. Repos are s
 
 ## Workflow
 
-**Before starting, enter plan mode.** Use the EnterPlanMode tool at the beginning so the user can review the full plan before any changes are made. Only exit plan mode after the user approves the plan.
+**Before starting, present the full grouped plan to the user and wait for explicit approval before making any changes.** If an `EnterPlanMode` tool is available, use it. Otherwise, present the plan as text output and ask the user to confirm before proceeding.
 
 ### Phase 1: Parse and group
 
