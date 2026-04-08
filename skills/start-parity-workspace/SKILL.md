@@ -1,16 +1,17 @@
 ---
 name: start-parity-workspace
-description: Create or reuse a coordinated Soyio parity workspace across soyio, soyio-dashboard, and privacy-center, then start the matching local runtimes.
+description: Create or reuse a coordinated Soyio parity workspace across soyio, soyio-dashboard, and soyio-embeds, then start the matching local runtimes.
 ---
 
 # Start Parity Workspace
 
 ## Overview
 
-Use this skill when local parity matters across `soyio`, `soyio-dashboard`, and `privacy-center`.
+Use this skill when local parity matters across `soyio`, `soyio-dashboard`, and `soyio-embeds`.
 
 Good fits:
 - verify auth, redirects, or iframe flows across apps
+- start parity for either `apps/privacy-center` or `apps/consent-embed`
 - spin up matching local origins for a coordinated feature
 - open peer repos that should share one `WORKTREE_ID`
 
@@ -19,6 +20,12 @@ Announce at start: "I'm using the start-parity-workspace skill to set up a coord
 ## Inputs
 
 Preferred input: one workspace id, for example `local-parity-smoke`.
+
+Optional second input: which embeds app to start in `soyio-embeds`.
+- `privacy-center`
+- `consent-embed`
+
+Default to `privacy-center` unless the user explicitly asks for `consent-embed`.
 
 If the workspace id is missing:
 - if the current checkout is already a linked worktree and exposes `WORKTREE_ID`, reuse that value
@@ -31,9 +38,11 @@ If the harness offers a structured question tool, use it. Only fall back to plai
 This skill is for the shared Soyio workspace containing:
 - `soyio`
 - `soyio-dashboard`
-- `privacy-center`
+- `soyio-embeds`
 
 Use the same workspace id in all three repos.
+
+Within `soyio-embeds`, create the matching worktree once and start the requested app with `bin/worktree-up --app privacy-center` or `bin/worktree-up --app consent-embed`.
 
 ## High-level flow
 
@@ -94,12 +103,12 @@ Run from the linked worktree:
 bin/worktree-up
 ```
 
-### privacy-center
+### soyio-embeds
 
 Run from the linked worktree:
 
 ```bash
-bin/worktree-up
+bin/worktree-up --app <privacy-center|consent-embed>
 ```
 
 If the user only wants peer worktrees created but not started, do not auto-start them. Ask once before starting if that was not explicit. Use the harness question tool when available.
@@ -109,7 +118,8 @@ If the user only wants peer worktrees created but not started, do not auto-start
 After creation or startup, run `bin/worktree-env` in each repo when available and report the key values:
 - `soyio`: `APPLICATION_HOST`
 - `soyio-dashboard`: `DASHBOARD_APP_ORIGIN`, `VITE_API_URL`
-- `privacy-center`: `PRIVACY_CENTER_APP_ORIGIN`, `VITE_API_URL`, `VITE_ACTION_CABLE_URL`
+- `soyio-embeds` when using `privacy-center`: `PRIVACY_CENTER_APP_ORIGIN`, `VITE_API_URL`, `VITE_ACTION_CABLE_URL`
+- `soyio-embeds` when using `consent-embed`: `CONSENT_EMBED_APP_ORIGIN`, `VITE_API_URL`
 
 Aggregate those repo-scoped values into one parity summary so the user gets one copy-pasteable set of URLs for the whole workspace.
 
@@ -125,10 +135,10 @@ Add `--purge-data` only when the user explicitly wants the linked-worktree Docke
 
 ## Safety rules
 
-- Never mix different workspace ids across the three repos.
+- Never mix different workspace ids across `soyio`, `soyio-dashboard`, and `soyio-embeds`.
 - Never assume fixed localhost ports; prefer `bin/worktree-env` output.
 - Reuse an existing matching worktree instead of creating duplicates.
-- Warn clearly if the task only changed `soyio`, or if dashboard/privacy worktrees were intentionally skipped or could not be started, because parity still needs verification in those cases.
+- Warn clearly if the task only changed `soyio`, or if dashboard or embeds worktrees were intentionally skipped or could not be started, because parity still needs verification in those cases.
 
 ## When not to use this skill
 
