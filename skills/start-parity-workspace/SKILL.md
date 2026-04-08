@@ -11,7 +11,7 @@ Use this skill when local parity matters across `soyio`, `soyio-dashboard`, and 
 
 Good fits:
 - verify auth, redirects, or iframe flows across apps
-- start parity for either `apps/privacy-center` or `apps/consent-embed`
+- start parity for either `privacy-center` or `consent-embed` inside `soyio-embeds`
 - spin up matching local origins for a coordinated feature
 - open peer repos that should share one `WORKTREE_ID`
 
@@ -138,7 +138,7 @@ Add `--purge-data` only when the user explicitly wants the linked-worktree Docke
 - Never mix different workspace ids across `soyio`, `soyio-dashboard`, and `soyio-embeds`.
 - Never assume fixed localhost ports; prefer `bin/worktree-env` output.
 - Reuse an existing matching worktree instead of creating duplicates.
-- Warn clearly if the task only changed `soyio`, or if dashboard or embeds worktrees were intentionally skipped or could not be started, because parity still needs verification in those cases.
+- Warn clearly if the task only changed `soyio`, or if `soyio-dashboard` or `soyio-embeds` worktrees were intentionally skipped or could not be started, because parity still needs verification in those cases.
 
 ## When not to use this skill
 
