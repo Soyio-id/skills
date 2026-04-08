@@ -11,7 +11,7 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 Core principle: systematic directory selection plus safety verification equals reliable isolation.
 
-Inside the Soyio multi-repo workspace, prefer `create-worktree` for one repo or `start-parity-workspace` for coordinated parity work. Use this skill as the generic fallback when no repo-specific skill or command applies.
+Inside the Soyio multi-repo workspace, prefer `create-worktree` for one repo or `start-parity-workspace` for coordinated parity work across `soyio`, `soyio-dashboard`, and `soyio-embeds`. Use this skill as the generic fallback when no repo-specific skill or command applies.
 
 Announce at start: "I'm using the using-git-worktrees skill to set up an isolated workspace."
 

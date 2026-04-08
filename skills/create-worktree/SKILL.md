@@ -165,4 +165,4 @@ Cleanup: bin/worktree-rm review-pr-215
 ## Soyio workspace note
 
 Inside the Soyio multi-repo workspace, prefer this skill for one repo at a time.
-Use `start-parity-workspace` instead when the user needs coordinated `soyio`, `soyio-dashboard`, and `privacy-center` worktrees.
+Use `start-parity-workspace` instead when the user needs coordinated `soyio`, `soyio-dashboard`, and `soyio-embeds` worktrees.
