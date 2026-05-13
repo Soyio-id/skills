@@ -102,7 +102,7 @@ gh api repos/<repo>/commits/<sha>/pulls
 
 5) Extract related Linear issues from included PRs
    - Do not search Linear by default.
-   - Inspect included PR titles, bodies, and head branches for Linear issue IDs such as `SOYIO-20` and existing magic-word links such as `closes SOYIO-20` or `refs SOYIO-21`.
+   - Inspect included PR titles, bodies, and head branches for Linear issue IDs such as `SOYIO-20` and existing magic-word links such as `closes SOYIO-20` or `references SOYIO-21`.
    - Fetch PR details when needed:
 
 ```bash
@@ -132,6 +132,7 @@ gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
    - Link each Linear issue with an allowed magic word followed by the ID, for example `closes SOYIO-20`.
    - Use a closing magic word only when this production PR fully completes or deploys the issue.
    - Use a non-closing magic word when the issue is partial, preparatory, informational, or only related.
+   - Use the magic words from `Magic words reference`.
    - If no template exists, the body should contain the PR list and, when present, Linear issue links:
 
 ```markdown
@@ -141,14 +142,8 @@ gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
 
 ## Linear
 completes SOYIO-20
-refs SOYIO-21
+references SOYIO-21
 ```
-
-Allowed closing magic words:
-`close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`, `implements`, `implemented`, `implementing`.
-
-Allowed non-closing magic words:
-`ref`, `refs`, `references`, `part of`, `related to`, `contributes to`, `toward`, `towards`.
 
 8) Build the title
    - Use the current date in `DD/MM/YY` format.
@@ -184,6 +179,13 @@ gh pr create --repo <repo> --base production --head <head_branch> --title "<titl
 - Verify every Linear issue link uses one allowed magic word followed by the issue ID.
 - Verify the final title is unique among PRs targeting `production`.
 - Verify the created or reused PR targets `production`.
+
+## Magic words reference
+Closing magic words:
+`close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`.
+
+Non-closing magic words:
+`ref`, `references`, `part of`, `related to`, `contributes to`, `towards`.
 
 ## Output format
 Return:

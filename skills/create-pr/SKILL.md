@@ -63,12 +63,7 @@ Open a high-quality PR that is easy to review and safe to merge:
       - Link each Linear issue with an allowed magic word followed by the ID, for example `closes SOYIO-20`.
       - Use a closing magic word only when this PR fully completes the issue.
       - Use a non-closing magic word when this PR is partial, preparatory, informational, or only related.
-
-Allowed closing magic words:
-`close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`, `implements`, `implemented`, `implementing`.
-
-Allowed non-closing magic words:
-`ref`, `refs`, `references`, `part of`, `related to`, `contributes to`, `toward`, `towards`.
+      - Use the magic words from `Magic words reference`.
 
 7) Create or reuse PR
    - Check existing PR first:
@@ -95,6 +90,13 @@ gh pr create --title "<title>" --body "<body>" --base <base_branch> --draft
 - Include test commands and concise outcomes in the PR body.
 - Verify every Linear issue link uses one allowed magic word followed by the issue ID.
 - If checks were not run, state why and call it out explicitly.
+
+## Magic words reference
+Closing magic words:
+`close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`.
+
+Non-closing magic words:
+`ref`, `references`, `part of`, `related to`, `contributes to`, `towards`.
 
 ## Output format
 Return:
