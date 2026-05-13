@@ -1,6 +1,6 @@
 ---
 name: create-production-pr
-description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs, and generate a date-based title with production-only version suffixes."
+description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and Linear issues, and generate a date-based title with production-only version suffixes."
 ---
 
 # Create Production Pull Request
@@ -11,6 +11,7 @@ Open a safe production promotion PR that:
 - uses `main` or `master` as the head branch
 - follows the repository PR template when one exists
 - lists the PRs included in the promotion as `- #123`
+- links related Linear issues with the correct magic words
 - uses the title `Paso a produccion DD/MM/YY` with `v2`, `v3`, and so on only when needed
 
 ## Inputs
@@ -99,7 +100,21 @@ gh api repos/<repo>/commits/<sha>/pulls
 
    - If no PRs are found, stop and report that there are no merged PRs to promote.
 
-5) Resolve the PR template
+5) Discover related Linear issues
+   - Use Linear MCP when it is available.
+   - Inspect included PR titles, bodies, head branches, and commit messages for issue IDs such as `SOYIO-20`.
+   - Fetch PR details when needed:
+
+```bash
+gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
+```
+
+   - If issue IDs are found, verify them with Linear MCP and capture their titles/statuses.
+   - If no issue IDs are found and Linear MCP is available, search Linear using included PR titles and branch names.
+   - If Linear MCP is unavailable, use only explicit issue IDs already present in GitHub context and state that Linear lookup was unavailable.
+   - Never invent issue IDs.
+
+6) Resolve the PR template
    - Check common template locations in this order:
      - `.github/PULL_REQUEST_TEMPLATE.md`
      - `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
@@ -107,19 +122,34 @@ gh api repos/<repo>/commits/<sha>/pulls
      - `docs/PULL_REQUEST_TEMPLATE.md`
      - `PULL_REQUEST_TEMPLATE.md`
    - Use the first unambiguous match.
-   - If the repo has no PR template, use the fallback body containing only the included PR list.
+   - If the repo has no PR template, use the fallback body containing the included PR list and any related Linear issue links.
 
-6) Build the PR body
+7) Build the PR body
    - If a template exists, preserve its structure and insert the included PR list in the most relevant section.
-   - If there is no obvious section, append a section named `## PRs incluidas` followed by the list.
-   - If no template exists, the body should be only the PR list:
+   - Put related Linear issues in the most relevant template section, or add `## Linear` when there is no obvious section.
+   - If there is no obvious section for included PRs, append a section named `## PRs incluidas` followed by the list.
+   - Link each Linear issue with an allowed magic word followed by the ID, for example `closes SOYIO-20`.
+   - Use a closing magic word only when this production PR fully completes or deploys the issue.
+   - Use a non-closing magic word when the issue is partial, preparatory, informational, or only related.
+   - If no template exists, the body should contain the PR list and, when present, Linear issue links:
 
 ```markdown
+## PRs incluidas
 - #124
 - #130
+
+## Linear
+completes SOYIO-20
+refs SOYIO-21
 ```
 
-7) Build the title
+Allowed closing magic words:
+`close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`, `implements`, `implemented`, `implementing`.
+
+Allowed non-closing magic words:
+`ref`, `refs`, `references`, `part of`, `related to`, `contributes to`, `toward`, `towards`.
+
+8) Build the title
    - Use the current date in `DD/MM/YY` format.
    - Start with:
 
@@ -139,7 +169,7 @@ gh pr list --repo <repo> --state all --base production --search '"Paso a producc
      - `Paso a produccion DD/MM/YY v3`
      - and so on
 
-8) Create the PR
+9) Create the PR
    - Use `gh pr create` with the chosen title, body, `production` base, and selected head branch.
    - Example:
 
@@ -150,6 +180,7 @@ gh pr create --repo <repo> --base production --head <head_branch> --title "<titl
 ## Validation
 - Verify the compare range is non-empty before creating the PR.
 - Verify the included PR list is deduplicated and ordered.
+- Verify every Linear issue link uses one allowed magic word followed by the issue ID.
 - Verify the final title is unique among PRs targeting `production`.
 - Verify the created or reused PR targets `production`.
 
@@ -162,6 +193,7 @@ Return:
 - whether a repo template was used
 - number of included PRs
 - the included PR list
+- related Linear issue links
 
 ## Error handling
 - If `gh` auth fails, instruct the user to run `gh auth login`.

@@ -10,11 +10,10 @@ Small skill library for Soyio teams.
 ## Current skills
 
 - `commit-work` - Create clean, logically scoped commits with strong messages.
-- `create-production-pr` - Open a production promotion PR from `main`/`master` to `production`, using the repo template and included PR list.
-- `create-pr` - Open a review-ready PR with `gh`, template alignment, and checks.
+- `create-production-pr` - Open a production promotion PR from `main`/`master` to `production`, using the repo template, included PR list, and Linear issue links.
+- `create-pr` - Open a review-ready PR with `gh`, template alignment, Linear issue links, and checks.
 - `create-worktree` - Create an isolated repo worktree for a branch or PR review.
 - `prepare-security-prs` - Triage dependency security PRs and apply minimal safe fixes.
-- `start-parity-workspace` - Start a coordinated Soyio parity workspace across `soyio`, `soyio-dashboard`, and `soyio-embeds`.
 - `using-git-worktrees` - Set up isolated worktrees with directory and safety verification.
 
 ## Install skills
