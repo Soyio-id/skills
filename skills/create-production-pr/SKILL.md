@@ -1,6 +1,6 @@
 ---
 name: create-production-pr
-description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and Linear issues, and generate a date-based title with production-only version suffixes."
+description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and their Linear links, and generate a date-based title with production-only version suffixes."
 ---
 
 # Create Production Pull Request
@@ -100,18 +100,19 @@ gh api repos/<repo>/commits/<sha>/pulls
 
    - If no PRs are found, stop and report that there are no merged PRs to promote.
 
-5) Discover related Linear issues
-   - Use Linear MCP when it is available.
-   - Inspect included PR titles, bodies, head branches, and commit messages for issue IDs such as `SOYIO-20`.
+5) Extract related Linear issues from included PRs
+   - Do not search Linear by default.
+   - Inspect included PR titles, bodies, and head branches for Linear issue IDs such as `SOYIO-20` and existing magic-word links such as `closes SOYIO-20` or `refs SOYIO-21`.
    - Fetch PR details when needed:
 
 ```bash
 gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
 ```
 
-   - If issue IDs are found, verify them with Linear MCP and capture their titles/statuses.
-   - If no issue IDs are found and Linear MCP is available, search Linear using included PR titles and branch names.
-   - If Linear MCP is unavailable, use only explicit issue IDs already present in GitHub context and state that Linear lookup was unavailable.
+   - Preserve the relationship intent from included PR descriptions when possible.
+   - Use closing magic words only when the included PR descriptions already use closing language or when the production promotion is explicitly the completing step.
+   - Use non-closing magic words when included PR descriptions use non-closing language or the relationship is only inferred from titles/branches.
+   - Use Linear MCP only when the user explicitly asks for Linear verification or lookup.
    - Never invent issue IDs.
 
 6) Resolve the PR template
