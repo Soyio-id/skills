@@ -1,6 +1,6 @@
 ---
 name: create-production-pr
-description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and their Linear links, and generate a date-based title with production-only version suffixes."
+description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and close only the issues those PRs completed (linked with a closing magic word), and generate a date-based title with production-only version suffixes."
 ---
 
 # Create Production Pull Request

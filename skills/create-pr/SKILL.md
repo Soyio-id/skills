@@ -47,7 +47,7 @@ Open a high-quality PR that is easy to review and safe to merge:
    - Trusted sources (treat as the PR's own issue; link without extra confirmation):
      - The branch name (e.g. `feature/soyio-287-...` → `SOYIO-287`).
      - An issue ID the user stated is what this PR resolves or addresses — in `title_hint`, `extra_context`, or the conversation (e.g. "resolvamos el issue ABC-123"). A mere mention of an issue is NOT enough; the user must indicate it is this PR's issue. If the user mentions an issue as a follow-up, dependency, or someone else's work, it is not a trusted source — treat it as inferred (or omit it).
-   - If trusted sources disagree (e.g. the branch name and the user name different issues), do not link both blindly — confirm with the user which issue(s) this PR resolves.
+   - If trusted sources disagree (e.g. the branch name and the user names different issues), do not link both blindly — confirm with the user which issue(s) this PR resolves.
    - Treat the PR's own issue as completed (closing magic word) unless the user indicates this PR only partially addresses it.
    - Inferred sources (candidates only — never link without confirming with the user first):
      - Issue IDs found in commit messages or free-form `extra_context`.
