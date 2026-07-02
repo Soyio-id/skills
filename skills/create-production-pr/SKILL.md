@@ -1,6 +1,6 @@
 ---
 name: create-production-pr
-description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and their Linear links, and generate a date-based title with production-only version suffixes."
+description: "Create a production promotion PR from main/master to production in an allowed repo or the current repo. Use the repo PR template when available, list included PRs and close only the issues those PRs completed (linked with a closing magic word), and generate a date-based title with production-only version suffixes."
 ---
 
 # Create Production Pull Request
@@ -11,7 +11,7 @@ Open a safe production promotion PR that:
 - uses `main` or `master` as the head branch
 - follows the repository PR template when one exists
 - lists the PRs included in the promotion as `- #123`
-- links related Linear issues with the correct magic words
+- closes only the issues that the included PRs completed (linked with a closing magic word), so the promotion moves them from "In Staging" to "Done"
 - uses the title `Paso a produccion DD/MM/YY` with `v2`, `v3`, and so on only when needed
 
 ## Inputs
@@ -100,18 +100,17 @@ gh api repos/<repo>/commits/<sha>/pulls
 
    - If no PRs are found, stop and report that there are no merged PRs to promote.
 
-5) Extract related Linear issues from included PRs
+5) Extract the issues completed by the included PRs
    - Do not search Linear by default.
-   - Inspect included PR titles, bodies, and head branches for Linear issue IDs such as `SOYIO-20` and existing magic-word links such as `closes SOYIO-20` or `references SOYIO-21`.
-   - Fetch PR details when needed:
+   - Fetch each included PR's body to inspect its Linear links:
 
 ```bash
 gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
 ```
 
-   - Preserve the relationship intent from included PR descriptions when possible.
-   - Use closing magic words only when the included PR descriptions already use closing language or when the production promotion is explicitly the completing step.
-   - Use non-closing magic words when included PR descriptions use non-closing language or the relationship is only inferred from titles/branches.
+   - Collect ONLY the issues that an included PR linked with a closing magic word (for example `closes SOYIO-20`). These are the issues that moved to "In Staging" when the PR merged to `main`, and that this promotion moves to "Done".
+   - Ignore any issue that appears only with a non-closing magic word, only in prose, or only inferred from titles/branches. Do not promote those — promoting them would mark unrelated or follow-up issues as Done.
+   - Deduplicate the collected issue IDs, preserving first appearance order.
    - Use Linear MCP only when the user explicitly asks for Linear verification or lookup.
    - Never invent issue IDs.
 
@@ -127,13 +126,12 @@ gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
 
 7) Build the PR body
    - If a template exists, preserve its structure and insert the included PR list in the most relevant section.
-   - Put related Linear issues in the most relevant template section, or add `## Linear` when there is no obvious section.
+   - Put the completed issues (from step 5) in the most relevant template section, or add `## Linear` when there is no obvious section.
    - If there is no obvious section for included PRs, append a section named `## PRs incluidas` followed by the list.
-   - Link each Linear issue with an allowed magic word followed by the ID, for example `closes SOYIO-20`.
-   - Use a closing magic word only when this production PR fully completes or deploys the issue.
-   - Use a non-closing magic word when the issue is partial, preparatory, informational, or only related.
-   - Use the magic words from `Magic words reference`.
-   - If no template exists, the body should contain the PR list and, when present, Linear issue links:
+   - Link each completed issue with a closing magic word followed by the ID, for example `closes SOYIO-20`, so merging to `production` moves it from "In Staging" to "Done".
+   - Only include issues collected in step 5 (linked by an included PR with a closing magic word). Never add issues that were only referenced, mentioned in prose, or inferred — including them would close unrelated or follow-up issues.
+   - Use the closing magic words from `Magic words reference`.
+   - If no template exists, the body should contain the PR list and, when present, the completed-issue links:
 
 ```markdown
 ## PRs incluidas
@@ -141,8 +139,8 @@ gh pr view <number> --repo <repo> --json number,title,body,headRefName,url
 - #130
 
 ## Linear
-completes SOYIO-20
-references SOYIO-21
+closes SOYIO-20
+closes SOYIO-21
 ```
 
 8) Build the title
@@ -176,16 +174,15 @@ gh pr create --repo <repo> --base production --head <head_branch> --title "<titl
 ## Validation
 - Verify the compare range is non-empty before creating the PR.
 - Verify the included PR list is deduplicated and ordered.
-- Verify every Linear issue link uses one allowed magic word followed by the issue ID.
+- Verify every Linear issue link uses a closing magic word followed by the issue ID, and that every linked issue was closed by an included PR (none are referenced-only, prose-only, or follow-up issues).
 - Verify the final title is unique among PRs targeting `production`.
 - Verify the created or reused PR targets `production`.
 
 ## Magic words reference
-Closing magic words:
+Closing magic words (the only ones used in production PRs, so merging to `production` moves issues to Done):
 `close`, `closes`, `closed`, `closing`, `fix`, `fixes`, `fixed`, `fixing`, `resolve`, `resolves`, `resolved`, `resolving`, `complete`, `completes`, `completed`, `completing`.
 
-Non-closing magic words:
-`ref`, `references`, `part of`, `related to`, `contributes to`, `towards`.
+Do not use non-closing/reference words (`references`, `part of`, `related to`, etc.) in a production PR. Issues that were not completed by an included PR must not appear at all.
 
 ## Output format
 Return:
@@ -196,7 +193,7 @@ Return:
 - whether a repo template was used
 - number of included PRs
 - the included PR list
-- related Linear issue links
+- completed-issue links (closes ...)
 
 ## Error handling
 - If `gh` auth fails, instruct the user to run `gh auth login`.
