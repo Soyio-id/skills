@@ -44,15 +44,18 @@ SLA_SOON_DAYS = 14
 
 
 def days_until(iso):
-    """Whole days from now until an ISO timestamp (negative = overdue). None if absent."""
+    """Whole days from now until an ISO timestamp (negative = overdue). None if absent.
+
+    Floors, so a deadline less than a day past due still reports negative and a partial
+    day remaining rounds down. Both keep the SLA warning on the conservative side.
+    """
     if not iso:
         return None
     try:
         dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
     except ValueError:
         return None
-    delta = dt - datetime.now(timezone.utc)
-    return -(-delta.days)  # ceil toward the deadline
+    return (dt - datetime.now(timezone.utc)).days
 
 BASE_URL = os.environ.get("VANTA_BASE_URL", "https://api.vanta.com")
 SCOPES = os.environ.get("VANTA_SCOPES", "vanta-api.all:read vanta-api.all:write")

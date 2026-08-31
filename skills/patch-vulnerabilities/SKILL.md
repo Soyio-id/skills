@@ -30,7 +30,7 @@ through the bundled helper script, which authenticates with `~/.vanta-credential
 > ```bash
 > # New branch (no existing PR):
 > git -C <workspace_root>/soyio fetch origin && \
->   git -C <workspace_root>/soyio worktree add <ws>/.worktrees/soyio-patch-vulnerabilities-<YYYY-MM-DD> origin/main
+>   git -C <workspace_root>/soyio worktree add <ws>/.worktrees/soyio-patch-vulnerabilities-<YYYY-MM-DD> -b patch-vulnerabilities-<YYYY-MM-DD> origin/main
 > # Existing PR branch:
 > git -C <workspace_root>/soyio fetch origin && \
 >   git -C <workspace_root>/soyio worktree add <ws>/.worktrees/soyio-patch-vulnerabilities-<YYYY-MM-DD> origin/<existing-branch>
@@ -81,13 +81,18 @@ Each `list` record includes: `id`, `cve`, `package`, `severity`, `source`
 
 ## Phase 0 — Sync repos
 
-Before making any changes, pull the latest `main` in every repo that may be touched. Stale local state causes merge conflicts when the PR branch is behind.
+Before making any changes, refresh `origin/main` in every repo that may be touched. Stale local state causes merge conflicts when the PR branch is behind.
 
 ```bash
-cd <workspace_root>/soyio && git checkout main && git pull origin main
+git -C <workspace_root>/soyio fetch origin
 ```
 
-Repeat for any other repo identified during Phase 1 (e.g. `prisma`, `soyio-embeds`). For repos where work will happen on a new branch (not a worktree), pull main **before** creating the branch. For soyio worktrees, `bin/soyio worktree add` already branches from the current HEAD, so pulling main first ensures the worktree starts from the latest commit.
+Repeat for any other repo identified during Phase 1 (e.g. `prisma`, `soyio-embeds`).
+
+Use `fetch`, never `checkout main && pull`. Fetch updates `origin/main` without touching the
+working tree, so it honors the **Worktree rule** above even when the user's checkout sits on
+another branch with uncommitted work. Every worktree branches from `origin/main`, so a fetch is
+all that is needed to start from the latest commit.
 
 ---
 
