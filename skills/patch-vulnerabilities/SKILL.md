@@ -51,7 +51,13 @@ through the bundled helper script, which authenticates with `~/.vanta-credential
 - **Vanta credentials:** `~/.vanta-credentials.json` (`{ client_id, client_secret }`)
 - **Helper script:** `~/.claude/skills/patch-vulnerabilities/scripts/vanta.py`
 - **Slack channel:** `#vulnerabilidades` (ID: `C094H86AXFW`)
-- **Workspace root:** `/Users/mmc/Desktop/soyio/`
+- **Workspace root:** the directory holding the `soyio` clone and its sibling repos.
+  Resolve it once at the start of the run — never hardcode a username or absolute path:
+  ```bash
+  WS="${SOYIO_WORKSPACE:-$HOME/Desktop/soyio}"
+  [ -d "$WS/soyio" ] || { echo "no soyio/ clone under $WS — set SOYIO_WORKSPACE"; exit 1; }
+  ```
+  Written `<workspace_root>` (or `<ws>`) throughout this document.
 - **soyio repo path:** `<workspace_root>/soyio`
 - **soyio main branch:** `main`
 - **Docker image:** `soyio-web:dev` (built from `products/soyio/compose.yaml`)
