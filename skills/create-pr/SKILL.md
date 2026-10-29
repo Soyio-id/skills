@@ -111,7 +111,7 @@ If a capability is missing in the current agent, use the fallback column or tell
 8) Create or reuse PR
    - Check existing PR first:
       - `gh pr view --json url,number,state 2>/dev/null`
-   - If existing PR found, return it and summarize status.
+   - If an existing PR is found, do not create another: reuse its number and URL, summarize its status, and continue with steps 9-13 (upload any screenshots captured in step 5).
    - If no PR exists, create it:
 
 ```bash
@@ -159,7 +159,7 @@ gh pr create --title "<title>" --body "<body>" --base <base_branch> --draft
    - If the agent has no Slack tool or it is not authenticated, print the message for the user to paste and say why it was not sent. Never post to another channel or via another tool.
 
 12) Monitor the first CI run and bot reviews
-   - Skip if the PR is a draft and the repo's bots don't review drafts; say so in the report.
+   - If the PR is a draft and the repo's bots don't review drafts, skip only the bot-review wait; still watch CI and address its results. Say so in the report.
    - CI: run `gh pr checks <number> --watch` in the background and wait for it to finish (Claude: `run_in_background` and wait for the notification instead of polling).
    - Bot reviews: Datadog, Greptile, and Codex post asynchronously, usually within ~10 min. Poll every ~2 min in the background, up to 20 min after PR creation, with:
      - `gh api repos/{owner}/{repo}/pulls/<number>/reviews`
@@ -174,6 +174,7 @@ gh pr create --title "<title>" --body "<body>" --base <base_branch> --draft
    - Failing checks: read logs with `gh run view <run-id> --log-failed`. Fix failures caused by this PR; report flaky or unrelated failures (with the failing job and error) instead of changing unrelated code.
    - Bot or human review comments: run `address-pr-comments` (fall back to the `address-github-comments` skill if unavailable) to fix relevant comments and resolve or justify the rest. If `address-pr-comments` is a user slash command/prompt the agent cannot invoke, follow its instructions directly: address and resolve remaining comments that are relevant to the current code; otherwise reply with a justification.
    - Never use `--no-verify` or force-push; follow the repo's normal commit/push flow.
+   - If these fixes change the UI, repeat steps 5 and 9 for the affected screens/states and replace their outdated screenshots in the PR body.
    - If nothing failed and no actionable comments came in, report the PR as clean.
 
 ## Validation
