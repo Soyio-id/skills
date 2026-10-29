@@ -11,7 +11,7 @@ Small skill library for Soyio teams.
 
 - `commit-work` - Create clean, logically scoped commits with strong messages.
 - `create-production-pr` - Open a production promotion PR from `main`/`master` to `production`, using the repo template, included PR list, and Linear issue links.
-- `create-pr` - Open a review-ready PR with `gh`, template alignment, Linear issue links, and checks.
+- `create-pr` - Open a review-ready PR with `gh`, template alignment, Linear issue links, and checks; upload screenshots for frontend changes, optionally post to #dev-flash-reviews, and follow up on the first CI run and bot reviews.
 - `create-worktree` - Create an isolated repo worktree for a branch or PR review.
 - `patch-vulnerabilities` - Run a recurring vulnerability sweep from the Vanta API: fix OS, gem, and npm packages, deactivate unfixable findings, open PRs, and post a Slack summary.
 - `prepare-security-prs` - Triage dependency security PRs and apply minimal safe fixes.
