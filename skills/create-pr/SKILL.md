@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: "Create a clear, review-ready pull request with gh CLI. Gather context from commits and diff; link the PR's Linear issue from trusted sources (branch name or explicitly provided ID) and confirm any inferred issue with the user before linking; never put a closing magic word on an unrelated or follow-up issue; follow repository templates; push safely; when the diff touches frontend, capture screenshots and upload them to the PR through the browser (gh CLI cannot upload images); offer to post the PR in #dev-flash-reviews on Slack (default: don't post); monitor the first CI run and bot reviews (Datadog, Greptile, Codex) and address failures and comments; and return the PR URL with merge guidance."
+description: "Create a clear, review-ready pull request with gh CLI. Gather context from commits and diff; link the PR's Linear issue from trusted sources (branch name or explicitly provided ID) and confirm any inferred issue with the user before linking; never put a closing magic word on an unrelated or follow-up issue; follow repository templates; push safely; when the diff touches frontend, capture screenshots and attach them to the PR with `gh --attach` (browser upload as fallback); offer to post the PR in #dev-flash-reviews on Slack (default: don't post); monitor the first CI run and bot reviews (Datadog, Greptile, Codex) and address failures and comments; and return the PR URL with merge guidance."
 ---
 
 # Create Pull Request
@@ -30,13 +30,14 @@ Open a high-quality PR that is easy to review and safe to merge:
 6) Screenshots must only show local/test/seed data. Never capture real personal data, customer data, tokens, or secrets.
 7) Never enter GitHub credentials in the browser. If Chrome is not logged in to GitHub, ask the user to log in.
 8) Never post to Slack without an explicit "yes" from the user in this conversation. No answer means no post.
+9) Never retry `gh pr create` after a partial `--attach` failure: the PR already exists. Fix attachments with `gh pr edit`.
 
 ## Agent tooling
 This skill is shared by Claude Code, Codex, and OpenCode. Use whichever tool the current agent has for each capability:
 
 | Capability | Claude Code | Codex | OpenCode / fallback |
 |---|---|---|---|
-| Drive the user's logged-in Chrome | `claude-in-chrome` (`find`/`read_page`, `file_upload`, `upload_image`, `javascript_tool`) | Chrome plugin (`chrome@openai-bundled`) | `browser-use` skill (CDP to the local Chrome; see its `uploads.md` and `screenshots.md`) |
+| Browser: capture screenshots (and fallback upload) | `claude-in-chrome` (`computer` screenshots, `find`/`read_page`, `file_upload`, `javascript_tool`) | Chrome plugin (`chrome@openai-bundled`) | `browser-use` skill (CDP to the local Chrome; see its `screenshots.md` and `uploads.md`) |
 | Ask the user | `AskUserQuestion` | ask in chat and wait | ask in chat and wait |
 | Background wait | Bash `run_in_background` / `Monitor` | background shell loop, check back | background shell loop, check back |
 | Slack | Slack MCP (`slack_search_channels`, `slack_send_message`) | Slack plugin (`slack@openai-curated`) | none: print the message for the user to paste |
@@ -88,7 +89,8 @@ If a capability is missing in the current agent, use the fallback column or tell
      - Reuse a running dev server if there is one; otherwise start the app with the project's dev script (Claude Code can use the `run` skill). Use seed/test data only.
      - Capture with the browser (see `Agent tooling`): open the screen, reach the changed state, and take a screenshot of each changed screen/state. Prefer focused viewport shots over full-page noise; add a mobile width when the change is responsive.
      - Add "before" shots only when the original is cheap to capture (e.g. the same screen on staging); otherwise "after" only.
-     - Save PNGs under `.context/screenshots/` when the workspace has `.context/`, else a temp dir, with descriptive names (`login-form-error-state.png`).
+     - Save PNGs under `.context/screenshots/` when the workspace has `.context/`, else a temp dir, with descriptive names (`login-form-error-state.png`). Keep each file under 10 MB.
+     - For an interaction that a still image can't show, a short `.gif`/`.mp4` recording is fine too.
    - If the app cannot be run or the screen cannot be reached, ask the user to provide screenshots or confirm skipping; if skipped, say so in the PR body under testing.
 
 6) Ensure branch is pushed
@@ -106,35 +108,41 @@ If a capability is missing in the current agent, use the fallback column or tell
       - Use a non-closing magic word when this PR is partial, preparatory, or only related to that issue.
       - Never link an issue that was not confirmed per step 4, and never put a closing magic word on an unrelated or follow-up issue. To note a follow-up without Linear acting on it, write it as plain prose without the issue ID.
       - Use the magic words from `Magic words reference`.
-      - If screenshots were captured, keep the template's screenshots section (or add `## Screenshots`) with a placeholder line; step 9 fills it.
+      - If screenshots were captured, put them in the template's screenshots section (or add `## Screenshots`) as local references with a short caption naming the screen/state, e.g. `![Login form, error state](./login-form-error-state.png)`. Use a two-column table for before/after pairs. `gh --attach` (step 8) rewrites these references to the uploaded URLs.
+      - Always write the body to a file. When it references screenshots, save the body file in the same directory as the images so `./<name>.png` resolves (paths in `--body-file` are relative to its directory).
 
 8) Create or reuse PR
    - Check existing PR first:
       - `gh pr view --json url,number,state 2>/dev/null`
-   - If an existing PR is found, do not create another: reuse its number and URL, summarize its status, and continue with steps 9-13 (upload any screenshots captured in step 5).
-   - If no PR exists, create it:
+   - If an existing PR is found, do not create another: reuse its number and URL, summarize its status, and continue with steps 9-13. Attach any screenshots captured in step 5 with `gh pr edit <number> --body-file <body-file> --attach <file> ...`.
+   - If no PR exists, create it (add `--draft` for a draft PR):
 
 ```bash
-gh pr create --title "<title>" --body "<body>" --base <base_branch>
+gh pr create --title "<title>" --body-file <body-file> --base <base_branch>
 ```
 
-For draft PR:
+   - With screenshots, add one `--attach` per file referenced in the body (up to 50, images/videos only, needs push access):
 
 ```bash
-gh pr create --title "<title>" --body "<body>" --base <base_branch> --draft
+gh pr create --title "<title>" --body-file .context/screenshots/pr-body.md --base <base_branch> \
+  --attach .context/screenshots/login-form-error-state.png \
+  --attach .context/screenshots/login-form-mobile.png
 ```
 
-9) Upload screenshots through the browser (frontend PRs only)
-   - `gh` cannot upload images, so use GitHub's web uploader in the user's logged-in Chrome (see `Agent tooling`) to get `https://github.com/user-attachments/assets/...` URLs:
+   - `--attach` requires a recent `gh`; check with `gh pr create --help | grep -q -- --attach`. If it's missing, create the PR without attachments and use the browser fallback in step 9.
+
+9) Verify screenshots (frontend PRs only)
+   - Check that `gh pr view <number> --json body` contains no local `./*.png` paths and has one `https://github.com/user-attachments/assets/...` URL per screenshot.
+   - Attached files not referenced in the body are appended at the end of it; move them into the screenshots section with `gh pr edit <number> --body-file <file>` if that happened.
+   - If some attachments failed, `gh` exits non-zero but the PR is still created/updated with the ones that succeeded and its URL is printed. Re-attach only the failed files with `gh pr edit <number> --body-file <body-file> --attach <failed-file>` (body file still referencing their local paths). Never re-run `gh pr create`.
+   - Browser fallback (only when `gh` has no `--attach`, or it fails twice): use GitHub's web uploader in the user's logged-in Chrome (see `Agent tooling`) to get `https://github.com/user-attachments/assets/...` URLs:
      1. Open the PR URL in a new tab. If GitHub shows a login page, stop and ask the user to log in.
      2. Locate the hidden `input[type=file]` of the new-comment box at the bottom of the PR conversation. Do not click the file input or the "Paste, drop, or click" link (it opens a native picker the agent cannot control).
      3. Set the PNGs (paths from step 5) on that input with the agent's upload tool (Claude: `file_upload`, keep each call under 10 MB, or `upload_image` with a fresh screenshot if the path is rejected; browser-use: CDP `DOM.setFileInputFiles` per its `uploads.md`).
      4. Wait until the comment textarea contains one `![...](https://github.com/user-attachments/assets/...)` line per image (uploads take a few seconds).
      5. Read the generated markdown from the textarea, then clear it. Never click "Comment".
-   - Put the images in the screenshots section of the body, each with a short caption naming the screen/state. Use a two-column table for before/after pairs.
-   - Apply the body with `gh pr edit <number> --body-file <file>` (write the body to a temp file to avoid shell quoting issues).
-   - Verify: `gh pr view --json body` contains the asset URLs, and the PR page renders the images (screenshot the description in the browser).
-   - If no browser tool is available or the upload fails twice, stop retrying: leave the local paths in your report, tell the user, and ask them to drag the images into the PR description.
+     6. Replace the local references in the body with those URLs and apply it with `gh pr edit <number> --body-file <file>`.
+   - If both `gh --attach` and the browser fallback fail, stop retrying: leave the local paths in your report, tell the user, and ask them to drag the images into the PR description.
 
 10) Post-create checks
    - `gh pr view --json url,number,title,state,mergeStateStatus,reviewDecision`
@@ -174,7 +182,7 @@ gh pr create --title "<title>" --body "<body>" --base <base_branch> --draft
    - Failing checks: read logs with `gh run view <run-id> --log-failed`. Fix failures caused by this PR; report flaky or unrelated failures (with the failing job and error) instead of changing unrelated code.
    - Bot or human review comments: run `address-pr-comments` (fall back to the `address-github-comments` skill if unavailable) to fix relevant comments and resolve or justify the rest. If `address-pr-comments` is a user slash command/prompt the agent cannot invoke, follow its instructions directly: address and resolve remaining comments that are relevant to the current code; otherwise reply with a justification.
    - Never use `--no-verify` or force-push; follow the repo's normal commit/push flow.
-   - If these fixes change the UI, repeat steps 5 and 9 for the affected screens/states and replace their outdated screenshots in the PR body.
+   - If these fixes change the UI, recapture the affected screens/states (step 5), point their references in the body file back to the new local files, re-attach them with `gh pr edit <number> --body-file <body-file> --attach <file> ...`, and verify (step 9).
    - If nothing failed and no actionable comments came in, report the PR as clean.
 
 ## Validation
